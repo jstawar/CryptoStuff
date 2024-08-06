@@ -5,7 +5,22 @@ import sys
 import datetime
 import urllib.request
 import zipfile
+import argparse
 from pathlib import Path
+
+def parseArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ticker', required = True)
+    parser.add_argument('--dateStart', required = True)
+    parser.add_argument('--dateEnd', required = True)
+    parser.add_argument('--rootDir', required = True)
+
+    parsed = parser.parse_args()
+    parsed.date_start = datetime.datetime.strptime(parsed.dateStart, '%Y%m%d').date()
+    parsed.date_end = datetime.datetime.strptime(parsed.dateEnd, '%Y%m%d').date()
+
+    return parsed
+
 
 def downloadAndUnzip(address, date_start, date_end, ticker, out_dir):
   curr = date_start
@@ -46,13 +61,12 @@ def downloadAndUnzip(address, date_start, date_end, ticker, out_dir):
     print(f'Exception: {e}')
     return False
     
-
+# ./get_trades.py --ticker ETHUSDT --dateStart 20240720 --dateEnd 20240806 --rootDir /CryptoData
 if __name__ == "__main__":
+  args = parseArgs()
+
   address = 'https://data.binance.vision/data/spot/daily/trades/'
-  ticker = sys.argv[1] # "ETHUSDT", "BTCUSDT"
-  date_start = datetime.datetime.strptime(sys.argv[2], '%Y%m%d').date()
-  date_end = datetime.datetime.strptime(sys.argv[3], '%Y%m%d').date()
-  out_dir = f'/CryptoData/{ticker}/'
-  ret = downloadAndUnzip(address, date_start, date_end, ticker, out_dir)
+  out_dir = f'{args.rootDir}/{args.ticker}/'
+  ret = downloadAndUnzip(address, args.date_start, args.date_end, args.ticker, out_dir)
   print()
   print("Finished with status: ", "OK" if ret else "FAILED")
